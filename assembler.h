@@ -77,7 +77,7 @@ class assembler{
 
         void processinstruction(){
             int instructiontype = processopcode();
-            int regtype;
+            int regtype = 0;
 
             /**
              * rd -> 0
@@ -86,12 +86,12 @@ class assembler{
             */
 
             switch(instructiontype){
-                case 0 | 1 | 4 | 5 : regtype = 0;  // r, i, u, j
-                case 2 : regtype = 2;      // s
-                case 3 : regtype = 1;      // b
+                case 0: case 1: case 4: case 5: regtype = 0; break; // r, i, u, j
+                case 2: regtype = 2; break;                        // s
+                case 3: regtype = 1; break;                       // b
             }
 
-
+            // std::cout << instructiontype << " " << regtype << std::endl;
             processregister(instructiontype, regtype);
 
         }
@@ -104,7 +104,7 @@ class assembler{
                 // valid register
                 uint32_t regnum_prime = codes.getregnum(reg);
                 regnum = (regnum_prime == 32) ? codes.getspecialregnum(reg) : regnum_prime;
-                
+
                 switch(regtype){
                     case 0 : current_instr_mc |= (regnum << 7);  // rd
                     case 1 : current_instr_mc |= (regnum << 15); // rs1
