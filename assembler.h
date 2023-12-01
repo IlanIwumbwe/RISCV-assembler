@@ -22,7 +22,6 @@ class assembler{
 
             instruction_pointer += 1;
             token_pointer = 0;
-
         }
 
         void assemble(){
@@ -34,19 +33,37 @@ class assembler{
             while(hasmoreinstructions()){
                 setlabels();
             }
-            setlabels();
 
             // do second pass to do actual assembly
-            instruction_pointer = 0;   // make sure to reset instruction pointer to 0
-            while(hasmoreinstructions()){
-                process_statements();
+            instruction_pointer = 0;  
+            token_pointer = 0;
+
+            instruction_tokens = GetTokens(instructions[0], std::regex(FULL_REGEX));
+            std::string directive;
+
+            while(getcurrenttoken() == "."){
+                processdirective();
+                directive = getcurrentinstruction();
+                instruction_tokens = GetTokens(directive, std::regex(FULL_REGEX));
             }
-            process_statements();
+
+            while(hasmoreinstructions()){
+                process_instructions();
+            }
 
         }
 
-        void process_statements(){
-            // statement is either label or RISCV instruction
+        void processdirective(){
+            // todo
+            std::string directive = peek();
+            std::cout << directive << std::endl;
+
+            instruction_pointer++;
+            token_pointer = 0;
+        }
+            
+        void process_instructions(){
+            // instructions is either label or RISCV instruction
             std::string current_instr;
             std::string opcode;
 
@@ -75,28 +92,40 @@ class assembler{
             current_instr_mc = 0;
         }
 
-        void processinstruction(){
-            int instructiontype = processopcode();
-            int regtype = 0;
-
-            /**
-             * rd -> 0
-             * rs1 -> 1
-             * rs2 -> 2
-            */
-
-            switch(instructiontype){
-                case 0: case 1: case 4: case 5: regtype = 0; break; // r, i, u, j
-                case 2: regtype = 2; break;                        // s
-                case 3: regtype = 1; break;                       // b
-            }
-
-            // std::cout << instructiontype << " " << regtype << std::endl;
-            processregister(instructiontype, regtype);
+        void process_R_type(){
+            // we know the next register as rd
+            processregister(0);
+            processsyntax(",");
 
         }
 
-        void processregister(const int& instructiontype, const int& regtype){
+        void process_I_type(){
+            // we know the next register is rd
+            processregister(0);
+            processsyntax(",");
+        }
+
+        void process_B_type(){
+            // we know the next register is rs1
+            processregister(1);
+            processsyntax(",");
+
+
+        }
+
+        void processinstruction(){
+            int instructiontype = processopcode(getcurrenttoken());
+            // rd -> 0, rs1 -> 1, rs2 -> 2
+            switch(instructiontype){
+                case 0: process_R_type(); break;
+                case 1: process_I_type(); break;
+                case 3: process_B_type(); break; 
+            }
+
+            std::cout << getcurrenttoken() << std::endl;
+        }
+
+        void processregister(const int& regtype){
             std::string reg = getcurrenttoken();
             uint32_t regnum;
 
@@ -106,27 +135,28 @@ class assembler{
                 regnum = (regnum_prime == 32) ? codes.getspecialregnum(reg) : regnum_prime;
 
                 switch(regtype){
-                    case 0 : current_instr_mc |= (regnum << 7);  // rd
-                    case 1 : current_instr_mc |= (regnum << 15); // rs1
-                    case 2 : current_instr_mc |= (regnum << 20); // rs2
+                    case 0 : current_instr_mc |= (regnum << 7); break; // rd
+                    case 1 : current_instr_mc |= (regnum << 15); break; // rs1
+                    case 2 : current_instr_mc |= (regnum << 20); break; // rs2
                 }
 
-                std::cout << std::hex << current_instr_mc << std::endl;
+                std::cout << numtobin(current_instr_mc) << std::endl;
 
             } else {
                 std::cout << "Invalid register" << std::endl;
+                exit(0);
             }
 
             token_pointer++;
 
         }
 
-        int processopcode(){
-            std::string opcode = getcurrenttoken();
+        int processopcode(std::string opcode){
             int instructiontype = checkopcode(opcode);
 
             if(instructiontype == -1){
                 std::cout << "Invalid opcode " << opcode << std::endl;
+                exit(0);
             } else {
                 // process the instruction
                 tableRow r = codes.getcontrolbits(opcode);
@@ -142,8 +172,17 @@ class assembler{
             return instructiontype;
         }
 
+        void processsyntax(const std::string& expected_token){
+            if(getcurrenttoken() == expected_token){
+                token_pointer ++;
+            } else {
+                std::cout << "Expected " << expected_token << " after " << previoustoken() << " instead of " << getcurrenttoken() << std::endl;
+                exit(0);
+            }
+        }
+
         bool hasmoreinstructions(){
-            return instruction_pointer != (int)instructions.size()-1;
+            return instruction_pointer != (int)instructions.size();
         }
 
         std::string getcurrentinstruction(){
@@ -195,7 +234,7 @@ class assembler{
         int instruction_pointer = 0;
 
         std::vector<uint32_t> machine_code;
-        uint32_t current_instr_mc;
+        uint32_t current_instr_mc = 0;
 
         Parser parser;  
 
