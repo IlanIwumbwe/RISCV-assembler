@@ -13,3 +13,4 @@ Write a program in RISC-V assembly (no psudo instructions), and convert it into 
 ### To-do
 - [ ] Conversion for psuedo instructions
 - [ ] Correctly interpret all directives (only `.equ` affects the program, the rest (`.global`, `.text`) are just printed out.)
+- [ ] The code is wrong when you work with full folder. Working with single file works. Need to fix this. 
