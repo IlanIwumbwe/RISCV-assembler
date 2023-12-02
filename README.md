@@ -12,4 +12,4 @@ Write a program in RISC-V assembly (no psudo instructions), and convert it into 
 
 ### To-do
 - [ ] Conversion for psuedo instructions
-- [ ] Correctly intepret all directives (only `.equ` affects the program, the rest (`.global`, `.text`) are just printed out.)
+- [ ] Correctly interpret all directives (only `.equ` affects the program, the rest (`.global`, `.text`) are just printed out.)
