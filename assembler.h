@@ -17,7 +17,11 @@ class assembler{
 
             if(peek() == ":"){
                 // the first token is a label
-                symbol_table[getcurrenttoken()] = instruction_pointer;
+                token_pointer++;
+                
+                symbol_table[previoustoken()] = (hasmoretokens()) ? mem_address : mem_address + 1;
+            } else {
+                mem_address++;
             }
 
             instruction_pointer += 1;
@@ -37,6 +41,7 @@ class assembler{
             // do second pass to do actual assembly
             instruction_pointer = 0;  
             token_pointer = 0;
+            mem_address = 0;
 
             instruction_tokens = GetTokens(instructions[0], std::regex(FULL_REGEX));
             std::string directive;
@@ -55,8 +60,8 @@ class assembler{
 
         void processdirective(){
             // todo
-            std::string directive = peek();
-            std::cout << directive << std::endl;
+            std::string directive_command = peek();
+            std::cout << directive_command << std::endl;
 
             instruction_pointer++;
             token_pointer = 0;
@@ -92,37 +97,163 @@ class assembler{
             current_instr_mc = 0;
         }
 
+        void process_J_type(const tableRow& opcodes){
+            uint32_t imm;
+
+            processregister(0);
+            processsyntax(",");
+
+            imm = (symbol_table[getcurrenttoken()] - mem_address) - 1;
+            imm *= 4;
+
+            processimmediate(opcodes, imm);
+        }
+
+        void process_U_type(const tableRow& opcodes){
+            uint32_t imm;
+
+            processregister(0);
+            processsyntax(",");
+
+            imm = stringtoint(getcurrenttoken());
+            processimmediate(opcodes, imm);
+        }        
+
+        void process_S_type(const tableRow& opcodes){
+            uint32_t imm;
+
+            processregister(2);
+            processsyntax(",");
+
+            imm = stringtoint(getcurrenttoken());
+            processimmediate(opcodes, imm);
+
+            processsyntax("(");
+            processregister(1);
+            processsyntax(")");
+        }
+
         void process_R_type(){
             // we know the next register as rd
             processregister(0);
             processsyntax(",");
-
+            processregister(1);
+            processsyntax(",");
+            processregister(2);
         }
 
-        void process_I_type(){
+        void process_I_type(const tableRow& opcodes){
+            uint32_t imm;
+
             // we know the next register is rd
             processregister(0);
             processsyntax(",");
+
+            if(opcodes.op == 3){
+                // next token is an immediate
+                imm = stringtoint(getcurrenttoken());
+                processimmediate(opcodes, imm);
+                processsyntax("(");
+                processregister(1);
+                processsyntax(")");
+                
+            } else if (opcodes.op == 19 || opcodes.op == 103){
+                // next token is rs1
+                processregister(1);
+                processsyntax(",");
+                imm = stringtoint(getcurrenttoken());
+                
+                processimmediate(opcodes, imm);
+                
+            } else {
+                std::cout << "What? Opcode should be 3, 19 or 103 for I-type. This is " << opcodes.op << ".\n";
+                std::cout << getcurrentinstruction() << std::endl;
+                exit(0);
+            }
         }
 
-        void process_B_type(){
+        void process_B_type(tableRow& opcodes){
             // we know the next register is rs1
+            uint32_t imm = 0;
+
             processregister(1);
             processsyntax(",");
+            processregister(2);
+            processsyntax(",");
 
+            imm = (symbol_table[getcurrenttoken()] - mem_address) - 1;
+            imm *= 4;
 
+            processimmediate(opcodes, imm);
         }
 
         void processinstruction(){
-            int instructiontype = processopcode(getcurrenttoken());
+            // tableRow opcodes;
+
+            tableRow opcodes;
+
+            int instructiontype = processopcode(getcurrenttoken(), opcodes);
             // rd -> 0, rs1 -> 1, rs2 -> 2
             switch(instructiontype){
                 case 0: process_R_type(); break;
-                case 1: process_I_type(); break;
-                case 3: process_B_type(); break; 
+                case 1: process_I_type(opcodes); break;
+                case 2: process_S_type(opcodes); break;
+                case 3: process_B_type(opcodes); break;
+                case 4: process_U_type(opcodes); break;
+                case 5: process_J_type(opcodes); break; 
             }
 
-            std::cout << getcurrenttoken() << std::endl;
+            std::cout << std::hex << current_instr_mc << std::endl;
+            std::cout << numtobin(current_instr_mc) << std::endl;
+
+            mem_address ++;
+        }
+
+        void processimmediate(const tableRow& opcodes, uint32_t immediate){
+            
+            switch(opcodes.op){
+                case 19:
+                    if(opcodes.funct3 == 1 || opcodes.funct3 == 5){
+                        // immediate is unsigned 5 bit immediate
+                        current_instr_mc |= ((immediate & 31) << 20);
+                    } else {
+                        current_instr_mc |= ((immediate & 4095) << 20);
+                    }
+                    break;
+
+                case 3: case 103:
+                    current_instr_mc |= ((immediate & 4095) << 20);
+                    break;
+
+                case 35:
+                    current_instr_mc |= ((immediate & 32) << 7);
+                    current_instr_mc |= ((immediate & 4064) << 20);
+                    break;
+
+                case 99:
+                    current_instr_mc |= ((immediate & 4096) << 19);
+                    current_instr_mc |= ((immediate & 2016) << 20);
+                    current_instr_mc |= ((immediate & 2048) >> 4);
+                    current_instr_mc |= ((immediate & 30) << 7);
+                    break;
+
+                case 23: case 55:
+                    current_instr_mc |= (immediate & 4294963200);
+                    break;
+
+                case 111:
+                    current_instr_mc |= ((immediate & 1048576) << 11);
+                    current_instr_mc |= ((immediate & 2046) << 20);
+                    current_instr_mc |= (immediate & 1044480);
+                    current_instr_mc |= ((immediate & 2048) << 9);
+                    break;
+                
+                default:
+                    std::cout << "Invalid opcode value " << numtobin(opcodes.op) << std::endl;
+                    exit(0);
+            }
+
+            token_pointer++;
         }
 
         void processregister(const int& regtype){
@@ -140,7 +271,7 @@ class assembler{
                     case 2 : current_instr_mc |= (regnum << 20); break; // rs2
                 }
 
-                std::cout << numtobin(current_instr_mc) << std::endl;
+                // std::cout << numtobin(current_instr_mc) << std::endl;
 
             } else {
                 std::cout << "Invalid register" << std::endl;
@@ -151,7 +282,7 @@ class assembler{
 
         }
 
-        int processopcode(std::string opcode){
+        int processopcode(std::string opcode, tableRow& r){
             int instructiontype = checkopcode(opcode);
 
             if(instructiontype == -1){
@@ -159,7 +290,7 @@ class assembler{
                 exit(0);
             } else {
                 // process the instruction
-                tableRow r = codes.getcontrolbits(opcode);
+                r = codes.getcontrolbits(opcode);
                 // std::cout << (int)r.op << (int)r.funct3 << (int)r.funct7 << std::endl; 
 
                 current_instr_mc |= r.op;
@@ -232,6 +363,7 @@ class assembler{
         int token_pointer = 0;
         std::vector<std::string> instructions;
         int instruction_pointer = 0;
+        int mem_address = 0;
 
         std::vector<uint32_t> machine_code;
         uint32_t current_instr_mc = 0;

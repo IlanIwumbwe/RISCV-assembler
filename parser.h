@@ -27,15 +27,18 @@ class Parser{
                 std::cout << "Error opening file at path : " << current_path << std::endl; 
             }
 
-            std::string line;
+            std::string line, part;
 
-            while(std::getline(infile, line)){                
-                if(line.size() != 0){   // ignore newlines
+            while(std::getline(infile, line)){              
+                if(!line.empty() && line[0] != '#'){   // ignore newlines and starting comments
+                    //std::cout << line << std::endl;  
                     if(line.find("#") != std::string::npos){
-                        line = splitString(line, "#")[0];
+                        part = splitString(line, "#")[0];
+                        instructions.push_back(removeWhiteSpace(part));
+                    } else {
+                        instructions.push_back(removeWhiteSpace(line));
                     }
 
-                    instructions.push_back(removeWhiteSpace(line));
                 }
             }
         }

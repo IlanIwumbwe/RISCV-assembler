@@ -47,7 +47,7 @@ std::vector<std::string> splitString(const std::string& input, const std::string
 }
 
 inline std::string removeWhiteSpace(std::string str){
-    std::regex pattern(R"(^\s+|\s+$)");
+    std::regex pattern(R"(^\s+|\s+$|\t|\n)");
 
     return std::regex_replace(str, pattern, "");
 }
@@ -65,6 +65,22 @@ std::string to_lower(const std::string input){
         x = (char)tolower(x);
     }
     return input_lower;
+}
+
+inline int hexstringtoint(const std::string& hexString) {
+    std::istringstream iss(hexString);
+    int result;
+    iss >> std::hex >> result;
+    return result;
+}
+
+/// Convert a base 10 or hex string into integer
+inline int stringtoint(const std::string& string){
+    if(string.find("x") != std::string::npos){
+        return hexstringtoint(string);
+    } else {
+        return std::stoi(string);
+    }
 }
 
 std::vector<std::string> GetTokens(std::string& input, std::regex pattern){
