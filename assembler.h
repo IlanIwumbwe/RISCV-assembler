@@ -152,9 +152,7 @@ class assembler{
             processregister(0);
             processsyntax(",");
 
-            if(checkimmediate(getcurrenttoken())){
-                imm = stringtoint(getcurrenttoken());
-            }
+            checkimm(getcurrenttoken(), imm);
             
             processimmediate(opcodes, imm);
         }        
@@ -165,10 +163,8 @@ class assembler{
             processregister(2);
             processsyntax(",");
 
-            if(checkimmediate(getcurrenttoken())){
-                imm = stringtoint(getcurrenttoken());
-            }
-        
+            checkimm(getcurrenttoken(), imm);
+
             processimmediate(opcodes, imm);
 
             processsyntax("(");
@@ -194,9 +190,7 @@ class assembler{
 
             if(opcodes.op == 3){
                 // next token is an immediate
-                if(checkimmediate(getcurrenttoken())){
-                    imm = stringtoint(getcurrenttoken());
-                }
+                checkimm(getcurrenttoken(), imm);
 
                 processimmediate(opcodes, imm);
                 processsyntax("(");
@@ -208,15 +202,24 @@ class assembler{
                 processregister(1);
                 processsyntax(",");
 
-                if(checkimmediate(getcurrenttoken())){
-                    imm = stringtoint(getcurrenttoken());
-                }
+                checkimm(getcurrenttoken(),imm);
 
                 processimmediate(opcodes, imm);
                 
             } else {
                 std::cout << "What? Opcode should be 3, 19 or 103 for I-type. This is " << opcodes.op << ".\n";
                 std::cout << getcurrentinstruction() << std::endl;
+                exit(0);
+            }
+        }
+
+        void checkimm(const std::string& immstr, uint32_t& immint){
+            if(isvalidNum(immstr)){
+                immint = stringtoint(getcurrenttoken());
+            } else if(imm_bindings.find(getcurrenttoken()) != imm_bindings.end()){
+                immint = imm_bindings[getcurrenttoken()];
+            } else {
+                std::cout << "Invalid immediate " << immstr << std::endl;
                 exit(0);
             }
         }
@@ -309,20 +312,10 @@ class assembler{
             token_pointer++;
         }
 
-        /// Check if immediate is a valid decimal or hex or is in imm bindings
-        bool checkimmediate(const std::string& imm_str){
-            if(isvalidNum(imm_str) == false){
-                std::cout << "Invalid immediate " << imm_str << std::endl;
-                exit(0);
-            }
-
-            return true;
-        }
-
         void processregister(const int& regtype){
             std::string reg = getcurrenttoken();
             uint32_t regnum;
-
+            
             if(checkregister(reg)){
                 // valid register
                 uint32_t regnum_prime = codes.getregnum(reg);
@@ -335,7 +328,8 @@ class assembler{
                 }
 
             } else {
-                std::cout << "Invalid register" << std::endl;
+                // std::cout << std::regex_match("s11", std::regex(REGISTERS)) << std::endl;
+                std::cout << "Invalid register " << reg <<  std::endl;
                 exit(0);
             }
 
@@ -413,7 +407,14 @@ class assembler{
         }
 
         bool checkregister(const std::string& reg){
-            return std::regex_match(reg, std::regex(REGISTERS));
+            std::vector<std::regex> registers = {t0to2, s0to1, a0to7, s2to11, t3to6, x_regnum, SPECIAL_REGS};
+
+            for(auto pattern : registers){
+                if(std::regex_match(reg, pattern)){
+                    return true;
+                }
+            }
+            return false;
         }
 
 

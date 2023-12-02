@@ -14,8 +14,8 @@ const std::string pathseparator = "/";
 #define B_TYPE_OPCODES R"(beq|bne|blt|bge|bltu|bgeu)"
 #define U_TYPE_OPCODES R"(auipc|lui)"
 #define J_TYPE_OPCODES R"(jal)"
-#define REGISTERS R"(zero|ra|sp|gp|tp|t[0-6]|s[0-11]|fp|a[0-7]|x[0-31])"
 
+#define SPECIAL_REGS std::regex(R"(zero|ra|sp|gp|tp|fp)")
 #define t0to2 std::regex(R"(t[0-2])")
 #define s0to1 std::regex(R"(s[0-1])")
 #define a0to7 std::regex(R"(a[0-7])")
@@ -115,6 +115,7 @@ class machine_codes{
 		std::unordered_map<std::string, uint32_t> reg_numbers = {
 			{"zero", 0},
 			{"ra", 1},
+			{"sp", 2},
 			{"gp", 3},
 			{"tp", 4},
 			{"fp", 8}

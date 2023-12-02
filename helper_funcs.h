@@ -80,10 +80,10 @@ inline bool isvalidHex(const std::string& hexString){
     return std::regex_match(hexString, pattern);
 }
 
-inline bool isvalidNum(const std::string& hexString){
+inline bool isvalidNum(const std::string& numString){
     auto pattern = std::regex(R"(0x([0-9a-fA-F])+|\-?([0-9])+)");
 
-    return std::regex_match(hexString, pattern);
+    return std::regex_match(numString, pattern);
 }
 
 /// Convert a base 10 or hex string into integer
