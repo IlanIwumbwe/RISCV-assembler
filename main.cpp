@@ -29,10 +29,8 @@ int main(int argc, char* argv[]) {
 
     std::vector<std::string> instrs;
 
-    for (auto path : GetFilesToParse(path)) {
-        std::cout << "Assembly in " << path << std::endl;
-
-        asmbl.SetCurrentPath(path);
+    for (auto p : GetFilesToParse(path)) {
+        asmbl.SetCurrentPath(fs::path(p));
         asmbl.assemble();
     }
 

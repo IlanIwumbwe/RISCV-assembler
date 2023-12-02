@@ -106,7 +106,7 @@ std::vector<std::string> GetTokens(std::string& input, std::regex pattern){
 
     while (iter != end) {
         if (iter->str().size() != 0){
-            if((iter->str().find("x") != std::string::npos) && (isvalidHex(iter->str()) == false)){
+            if((std::regex_match(iter->str(), std::regex(R"(0x[0-9a-fA-F]+)"))) && (isvalidHex(iter->str()) == false)){
                 std::cout << "Hex value " << iter->str() << " is incorrect" << std::endl;
                 exit(0);
             } else {

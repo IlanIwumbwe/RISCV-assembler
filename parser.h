@@ -11,7 +11,7 @@
 class Parser{
     public:
         Parser () {}
-        void SetPathToFile(std::string& path){
+        void SetPathToFile(const fs::path& path){
             current_path = path;
         }
 
@@ -20,6 +20,8 @@ class Parser{
         }
         
         void Parse(){
+            instructions = {};
+
             std::ifstream infile;
             infile.open(current_path);
 
@@ -44,7 +46,7 @@ class Parser{
         }
 
     private:
-        std::string current_path;
+        fs::path current_path;
         std::vector<std::string> instructions;
 };
 

@@ -1,6 +1,12 @@
 #ifndef DEFS_H  
 #define DEFS_H
 
+#ifdef _WIN32
+const std::string pathseparator = "\\";
+#else
+const std::string pathseparator = "/";
+#endif
+
 #define FULL_REGEX R"([a-zA-Z_0-9]*|\-?0x[0-9a-fA-F]+|\-?[0-9]+|\(|\)|\.|,|:)"
 #define R_TYPE_OPCODES R"(add|sub|sll|slt|sltu|xor|srl|sra|or|and)"
 #define I_TYPE_OPCODES R"(lb|lh|lw|lbu|lhu|addi|slli|slti|sltiu|xori|srli|srai|ori|andi|jalr)"

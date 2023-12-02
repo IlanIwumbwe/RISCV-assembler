@@ -3,11 +3,11 @@
 
 #include "parser.h"
 #include "defs.h"
-
+#include <iomanip>
 class assembler{
     public:
         assembler(){}
-        void SetCurrentPath(const std::string& path){current_path = path;}
+        void SetCurrentPath(const fs::path& path){current_path = path;}
 
         void setlabels(){
             std::string current_instr;
@@ -33,6 +33,11 @@ class assembler{
             parser.Parse();
             instructions = parser.GetInstrs();
 
+            std::cout << "Assembly in " << current_path.string() << std::endl;
+
+            std::string output_path = current_path.replace_extension(".txt"); 
+            std::ofstream outfile(output_path);
+
             // do a first pass to sort out labels
             while(hasmoreinstructions()){
                 setlabels();
@@ -42,6 +47,8 @@ class assembler{
             instruction_pointer = 0;  
             token_pointer = 0;
             mem_address = 0;
+
+            // std::cout << instructions[0] << std::endl;
 
             instruction_tokens = GetTokens(instructions[0], std::regex(FULL_REGEX));
             std::string directive;
@@ -53,8 +60,14 @@ class assembler{
             }
 
             while(hasmoreinstructions()){
-                process_instructions();
+                process_instructions(outfile);
             }
+
+            instructions = {};
+            current_instr_mc = 0;
+            instruction_pointer = 0;
+
+            std::cout << "Machine code in " << output_path << std::endl;
 
         }
 
@@ -67,11 +80,14 @@ class assembler{
             if(directive_command == "equ"){
                 token_pointer++;
                 auto binding = getcurrenttoken();
+                token_pointer++;
                 processsyntax(",");
                 auto imm = stringtoint(getcurrenttoken());
                 imm_bindings[binding] = imm;
             } else if(directive_command == "text") {
                 std::cout << "Assembly after this command" << std::endl;
+            } else if(directive_command == "global" || directive_command == "globl"){
+                std::cout << "Set label to global scope" << std::endl;
             } else {
                 std::cout << "Invalid directive " << directive_command << std::endl;
                 exit(0); 
@@ -83,7 +99,7 @@ class assembler{
             token_pointer = 0;
         }
             
-        void process_instructions(){
+        void process_instructions(std::ofstream& outfile){
             // instructions is either label or RISCV instruction
             std::string current_instr;
             std::string opcode;
@@ -98,18 +114,18 @@ class assembler{
                 
                 if(opcode != "notokens"){
                     token_pointer ++;  // token pointer now points to the opcode
-                    processinstruction();
+                    processinstruction(outfile);
                 } 
     
             } else {
                 // we have a RISCV instruction
-                processinstruction();
+                processinstruction(outfile);
             }
 
             instruction_pointer += 1;
             token_pointer = 0;
 
-            machine_code.push_back(current_instr_mc);
+            // machine_code.push_back(current_instr_mc);
             current_instr_mc = 0;
         }
 
@@ -225,7 +241,7 @@ class assembler{
             processimmediate(opcodes, imm);
         }
 
-        void processinstruction(){
+        void processinstruction(std::ofstream& outfile){
             // tableRow opcodes;
 
             tableRow opcodes;
@@ -241,9 +257,8 @@ class assembler{
                 case 5: process_J_type(opcodes); break; 
             }
 
-            std::cout << std::hex << current_instr_mc << std::endl;
-            std::cout << numtobin(current_instr_mc) << std::endl;
-
+            outfile << std::setfill('0') << std::setw(8) << std::hex << current_instr_mc << std::endl;
+            // std::cout << numtobin(current_instr_mc) << std::endl;
             mem_address ++;
         }
 
@@ -294,7 +309,7 @@ class assembler{
             token_pointer++;
         }
 
-        /// Check if immediate is a valid decimal or hex 
+        /// Check if immediate is a valid decimal or hex or is in imm bindings
         bool checkimmediate(const std::string& imm_str){
             if(isvalidNum(imm_str) == false){
                 std::cout << "Invalid immediate " << imm_str << std::endl;
@@ -318,8 +333,6 @@ class assembler{
                     case 1 : current_instr_mc |= (regnum << 15); break; // rs1
                     case 2 : current_instr_mc |= (regnum << 20); break; // rs2
                 }
-
-                // std::cout << numtobin(current_instr_mc) << std::endl;
 
             } else {
                 std::cout << "Invalid register" << std::endl;
@@ -405,7 +418,7 @@ class assembler{
 
 
     private:
-        std::string current_path;
+        fs::path current_path;
 
         std::vector<std::string> instruction_tokens;
         int token_pointer = 0;
@@ -414,6 +427,7 @@ class assembler{
         int mem_address = 0;
 
         std::vector<uint32_t> machine_code;
+
         uint32_t current_instr_mc = 0;
 
         Parser parser;  
