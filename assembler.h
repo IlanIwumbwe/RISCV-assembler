@@ -21,7 +21,7 @@ class assembler{
                 
                 symbol_table[previoustoken()] = (hasmoretokens()) ? mem_address : mem_address + 1;
             } else {
-                mem_address++;
+                if(getcurrenttoken() != "."){mem_address++;}
             }
 
             instruction_pointer += 1;
@@ -60,7 +60,23 @@ class assembler{
 
         void processdirective(){
             // todo
-            std::string directive_command = peek();
+            token_pointer++;  // now pointing at directive command
+
+            std::string directive_command = getcurrenttoken();
+
+            if(directive_command == "equ"){
+                token_pointer++;
+                auto binding = getcurrenttoken();
+                processsyntax(",");
+                auto imm = stringtoint(getcurrenttoken());
+                imm_bindings[binding] = imm;
+            } else if(directive_command == "text") {
+                std::cout << "Assembly after this command" << std::endl;
+            } else {
+                std::cout << "Invalid directive " << directive_command << std::endl;
+                exit(0); 
+            }
+
             std::cout << directive_command << std::endl;
 
             instruction_pointer++;
@@ -103,7 +119,12 @@ class assembler{
             processregister(0);
             processsyntax(",");
 
-            imm = (symbol_table[getcurrenttoken()] - mem_address) - 1;
+            if(isvalidNum(getcurrenttoken())){
+                imm = stringtoint(getcurrenttoken()) - mem_address - 1;
+            } else {
+                imm = symbol_table[getcurrenttoken()] - mem_address - 1;
+            }
+
             imm *= 4;
 
             processimmediate(opcodes, imm);
@@ -115,7 +136,10 @@ class assembler{
             processregister(0);
             processsyntax(",");
 
-            imm = stringtoint(getcurrenttoken());
+            if(checkimmediate(getcurrenttoken())){
+                imm = stringtoint(getcurrenttoken());
+            }
+            
             processimmediate(opcodes, imm);
         }        
 
@@ -125,7 +149,10 @@ class assembler{
             processregister(2);
             processsyntax(",");
 
-            imm = stringtoint(getcurrenttoken());
+            if(checkimmediate(getcurrenttoken())){
+                imm = stringtoint(getcurrenttoken());
+            }
+        
             processimmediate(opcodes, imm);
 
             processsyntax("(");
@@ -151,7 +178,10 @@ class assembler{
 
             if(opcodes.op == 3){
                 // next token is an immediate
-                imm = stringtoint(getcurrenttoken());
+                if(checkimmediate(getcurrenttoken())){
+                    imm = stringtoint(getcurrenttoken());
+                }
+
                 processimmediate(opcodes, imm);
                 processsyntax("(");
                 processregister(1);
@@ -161,8 +191,11 @@ class assembler{
                 // next token is rs1
                 processregister(1);
                 processsyntax(",");
-                imm = stringtoint(getcurrenttoken());
-                
+
+                if(checkimmediate(getcurrenttoken())){
+                    imm = stringtoint(getcurrenttoken());
+                }
+
                 processimmediate(opcodes, imm);
                 
             } else {
@@ -181,7 +214,12 @@ class assembler{
             processregister(2);
             processsyntax(",");
 
-            imm = (symbol_table[getcurrenttoken()] - mem_address) - 1;
+            if(isvalidNum(getcurrenttoken())){
+                imm = stringtoint(getcurrenttoken()) - mem_address - 1;
+            } else {
+                imm = symbol_table[getcurrenttoken()] - mem_address - 1;
+            }
+
             imm *= 4;
 
             processimmediate(opcodes, imm);
@@ -210,7 +248,7 @@ class assembler{
         }
 
         void processimmediate(const tableRow& opcodes, uint32_t immediate){
-            
+        
             switch(opcodes.op){
                 case 19:
                     if(opcodes.funct3 == 1 || opcodes.funct3 == 5){
@@ -254,6 +292,16 @@ class assembler{
             }
 
             token_pointer++;
+        }
+
+        /// Check if immediate is a valid decimal or hex 
+        bool checkimmediate(const std::string& imm_str){
+            if(isvalidNum(imm_str) == false){
+                std::cout << "Invalid immediate " << imm_str << std::endl;
+                exit(0);
+            }
+
+            return true;
         }
 
         void processregister(const int& regtype){
@@ -380,8 +428,9 @@ class assembler{
             {J_TYPE_OPCODES, 5}     // j
         };
 
-        // symbol table
+        // symbol table and equ directive table
         std::unordered_map<std::string, int> symbol_table;
+        std::unordered_map<std::string, int> imm_bindings;
 
         // codes
         machine_codes codes;

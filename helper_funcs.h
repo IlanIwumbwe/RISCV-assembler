@@ -74,24 +74,46 @@ inline int hexstringtoint(const std::string& hexString) {
     return result;
 }
 
+inline bool isvalidHex(const std::string& hexString){
+    auto pattern = std::regex(R"(0x([0-9a-fA-F])+)");
+
+    return std::regex_match(hexString, pattern);
+}
+
+inline bool isvalidNum(const std::string& hexString){
+    auto pattern = std::regex(R"(0x([0-9a-fA-F])+|\-?([0-9])+)");
+
+    return std::regex_match(hexString, pattern);
+}
+
 /// Convert a base 10 or hex string into integer
 inline int stringtoint(const std::string& string){
-    if(string.find("x") != std::string::npos){
+    if(isvalidHex(string)){
         return hexstringtoint(string);
     } else {
         return std::stoi(string);
     }
 }
 
+/// Get tokens from a program. A note on hex: only valid hex digits are allowed. So when assembling, be 100% certain you are dealing
+/// with either correct decimals or correct hex
+/// The regex match matches even invalid hex on purpose. The tokens can be anything, then do error checking at this stage, and others.
 std::vector<std::string> GetTokens(std::string& input, std::regex pattern){
-    // instr = removeWhiteSpace(instr);
     std::vector<std::string> tokens = {};
 
     std::sregex_iterator iter(input.begin(), input.end(), pattern);
     std::sregex_iterator end;
 
     while (iter != end) {
-        if (iter->str().size() != 0) tokens.push_back(to_lower(iter->str()));
+        if (iter->str().size() != 0){
+            if((iter->str().find("x") != std::string::npos) && (isvalidHex(iter->str()) == false)){
+                std::cout << "Hex value " << iter->str() << " is incorrect" << std::endl;
+                exit(0);
+            } else {
+                tokens.push_back(to_lower(iter->str()));
+            }
+        }
+
         ++iter;
     }
 
