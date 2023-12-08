@@ -23,4 +23,3 @@ wait:
     addi s4, zero, 0x8
     bne s3, s2, loopi
     ADDI s5, zero, 0
-

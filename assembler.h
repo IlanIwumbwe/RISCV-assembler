@@ -33,8 +33,6 @@ class assembler{
             parser.Parse();
             instructions = parser.GetInstrs();
 
-            std::cout << "Assembly in " << current_path.string() << std::endl;
-
             std::string output_path = current_path.replace_extension(".txt"); 
             std::ofstream outfile(output_path);
 

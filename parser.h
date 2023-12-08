@@ -32,17 +32,24 @@ class Parser{
             std::string line, part;
 
             while(std::getline(infile, line)){              
-                if(!line.empty() && line[0] != '#'){   // ignore newlines and starting comments
+                if(!removeWhiteSpace(line).empty() && line[0] != '#'){   // ignore newlines and starting comments
                     //std::cout << line << std::endl;  
                     if(line.find("#") != std::string::npos){
-                        part = splitString(line, "#")[0];
-                        instructions.push_back(removeWhiteSpace(part));
+                        part = splitString(removeWhiteSpace(line), "#")[0];
+                        if(!part.empty()){instructions.push_back(removeWhiteSpace(part));}
                     } else {
                         instructions.push_back(removeWhiteSpace(line));
                     }
 
                 }
             }
+
+            /*
+            for(auto i : instructions){
+                std::cout << i << std::endl;
+            }*/
+
+
         }
 
     private:
