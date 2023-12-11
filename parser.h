@@ -49,7 +49,6 @@ class Parser{
                 std::cout << i << std::endl;
             }*/
 
-
         }
 
     private:

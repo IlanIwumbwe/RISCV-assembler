@@ -162,7 +162,6 @@ class assembler{
             processsyntax(",");
 
             checkimm(getcurrenttoken(), imm);
-
             processimmediate(opcodes, imm);
 
             processsyntax("(");
@@ -280,7 +279,7 @@ class assembler{
                     break;
 
                 case 35:
-                    current_instr_mc |= ((immediate & 32) << 7);
+                    current_instr_mc |= ((immediate & 31) << 7);
                     current_instr_mc |= ((immediate & 4064) << 20);
                     break;
 
