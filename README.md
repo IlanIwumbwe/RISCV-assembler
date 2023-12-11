@@ -13,5 +13,5 @@ Write a program in RISC-V assembly (no psudo instructions), and convert it into 
 ### To-do
 - [ ] Conversion for psuedo instructions
 - [ ] Correctly interpret all directives (only `.equ` affects the program, the rest (`.global`, `.text`) are just printed out.)
-- [ ] The code is wrong when you work with a folder of assembly files. Working with single files works. Need to fix this. 
+- [x] The code is wrong when you work with a folder of assembly files. Working with single files works. Need to fix this. 
 - [ ] Add interpretation for binary immediates for I type instructions
