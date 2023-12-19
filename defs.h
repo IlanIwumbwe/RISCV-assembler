@@ -14,13 +14,14 @@ const std::string pathseparator = "/";
 #define B_TYPE_OPCODES R"(beq|bne|blt|bge|bltu|bgeu)"
 #define U_TYPE_OPCODES R"(auipc|lui)"
 #define J_TYPE_OPCODES R"(jal)"
+#define P_OPCODES R"(li|la|mv|not|neg|bgt|ble|bgtu|bleu|beqz|bnez|bgez|blez|bgtz|j|call|ret|nop)"
 
 #define SPECIAL_REGS std::regex(R"(zero|ra|sp|gp|tp|fp)")
 #define t0to2 std::regex(R"(t[0-2])")
 #define s0to1 std::regex(R"(s[0-1])")
 #define a0to7 std::regex(R"(a[0-7])")
 #define s2to11 std::regex(R"(s[2-9]|10|11)")
-#define t3to6 std::regex(R"(t[3-6])")
+#define t3to6 std::regex(R"(t[3-6])")	
 #define x_regnum std::regex(R"(x[0-31])")
 
 #include <unordered_map>
@@ -43,9 +44,8 @@ class machine_codes{
 			codes[opcode] = row;
 		}
 
-		tableRow getcontrolbits(std::string opcode) {
-			auto row = codes[opcode];
-			return row;
+		inline tableRow getcontrolbits(const std::string& opcode) {
+			return codes[opcode];
 		}
 
 		uint32_t getspecialregnum(std::string reg){
@@ -75,6 +75,7 @@ class machine_codes{
 		std::unordered_map<std::string, tableRow> codes = {
 			{"add", {51, 0, 0}},
 			{"sub", {51, 0, 64}},
+			{"neg", {51, 0, 64}},
 			{"sll", {51, 1, 0}},
 			{"slt", {51, 2, 0}},
 			{"sltu", {51, 3, 0}},
@@ -89,10 +90,15 @@ class machine_codes{
 			{"lbu", {3, 4, 0}},
 			{"lhu", {3, 5, 0}},
 			{"addi", {19, 0, 0}},
+			{"la", {19, 0, 0}},
+			{"li", {19, 0, 0}},
+			{"mv", {19, 0, 0}},
+			{"nop", {19, 0, 0}},
 			{"slli", {19, 1, 0}},
 			{"slti", {19, 2, 0}},
 			{"sltiu", {19, 3, 0}},
 			{"xori", {19, 4, 0}},
+			{"not", {19, 4, 0}},
 			{"srli", {19, 5, 0}},
 			{"srai", {19, 5, 64}},
 			{"ori", {19, 6, 0}},
@@ -101,15 +107,27 @@ class machine_codes{
 			{"sh", {35, 1, 0}},
 			{"sw", {35, 2, 0}},
 			{"beq", {99, 0, 0}},
+			{"beqz", {99, 0, 0}},
 			{"bne", {99, 1, 0}},
+			{"bnez", {99, 1, 0}},
 			{"blt", {99, 4, 0}},
+			{"bgt", {99, 4, 0}},
+			{"bgtz", {99, 4, 0}},
 			{"bge", {99, 5, 0}},
+			{"ble", {99, 5, 0}},
+			{"bgez", {99, 5, 0}},
+			{"blez", {99, 5, 0}},
 			{"bltu", {99, 6, 0}},
+			{"bgtu", {99, 6, 0}},
 			{"bgeu", {99, 7, 0}},
+			{"bleu", {99, 7, 0}},
 			{"auipc", {23, 0, 0}},
 			{"lui", {55, 0, 0}},
 			{"jalr", {103, 0, 0}},
-			{"jal", {111, 0, 0}}
+			{"call", {103, 0, 0}},
+			{"ret", {103, 0, 0}},
+			{"jal", {111, 0, 0}},
+			{"j", {111, 0, 0}}
 		};
 
 		std::unordered_map<std::string, uint32_t> reg_numbers = {

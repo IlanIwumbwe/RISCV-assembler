@@ -11,7 +11,7 @@ Machine code will be found in same directory as input file(s), with the same nam
 Write a program in RISC-V assembly (no psudo instructions), and convert it into machine code!
 
 ### To-do
-- [ ] Conversion for psuedo instructions
+- [x] Conversion for psuedo instructions
 - [ ] Correctly interpret all directives (only `.equ` affects the program, the rest (`.global`, `.text`) are just printed out.)
 - [x] The code is wrong when you work with a folder of assembly files. Working with single files works. Need to fix this. 
 - [ ] Add interpretation for binary immediates for I type instructions
