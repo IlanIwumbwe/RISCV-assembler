@@ -366,15 +366,15 @@ class assembler{
 
             } else if(p_opcode == "call"){
                 processoffset(opcodes, imm);
-                processregister(0, 1);
-                processregister(1, 1);
+                processregister(RD, 1);
+                processregister(RS1, 1);
 
                 if(imm > 4095){
                     ready_base_instruction = current_instr_mc;
                     current_instr_mc = 0;
 
                     processopcode("auipc", opcodes);   
-                    processregister(0, 1);
+                    processregister(RD, 1);
                     processimmediate(opcodes, imm);
 
                     outfile << std::setfill('0') << std::setw(8) << std::hex << current_instr_mc << std::endl;
@@ -384,7 +384,7 @@ class assembler{
                 }
 
             } else if(p_opcode == "ret"){
-                processregister(1, 1);
+                processregister(RS1, 1);
                 
             } else {
                 std::cout << "nop instruction should be the only one that reaches this point" << std::endl;
