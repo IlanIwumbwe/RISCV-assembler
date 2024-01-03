@@ -4,6 +4,22 @@
 #include "parser.h"
 #include "defs.h"
 #include <iomanip>
+typedef enum {
+    R_TYPE = 0,
+    I_TYPE,
+    S_TYPE,
+    B_TYPE,
+    U_TYPE,
+    J_TYPE,
+    P_TYPE,
+} instruction_types;
+
+typedef enum {
+    RD = 0,
+    RS1,
+    RS2,
+} registers;
+
 class assembler{
     public:
         assembler(){}
@@ -130,7 +146,7 @@ class assembler{
         void process_J_type(const tableRow& opcodes){
             uint32_t imm;
 
-            processregister(0);
+            processregister(RD);
             processsyntax(",");
 
             processoffset(opcodes, imm);
@@ -139,7 +155,7 @@ class assembler{
         void process_U_type(const tableRow& opcodes){
             uint32_t imm;
 
-            processregister(0);
+            processregister(RD);
             processsyntax(",");
 
             checkimm(getcurrenttoken(), imm);
@@ -150,31 +166,31 @@ class assembler{
         void process_S_type(const tableRow& opcodes){
             uint32_t imm;
 
-            processregister(2);
+            processregister(RS2);
             processsyntax(",");
 
             checkimm(getcurrenttoken(), imm);
             processimmediate(opcodes, imm);
 
             processsyntax("(");
-            processregister(1);
+            processregister(RS1);
             processsyntax(")");
         }
 
         void process_R_type(){
             // we know the next register as rd
-            processregister(0);
+            processregister(RD);
             processsyntax(",");
-            processregister(1);
+            processregister(RS1);
             processsyntax(",");
-            processregister(2);
+            processregister(RS2);
         }
 
         void process_I_type(const tableRow& opcodes){
             uint32_t imm;
 
             // we know the next register is rd
-            processregister(0);
+            processregister(RD);
             processsyntax(",");
 
             if(opcodes.op == 3){
@@ -183,12 +199,12 @@ class assembler{
 
                 processimmediate(opcodes, imm);
                 processsyntax("(");
-                processregister(1);
+                processregister(RS1);
                 processsyntax(")");
                 
             } else if (opcodes.op == 19 || opcodes.op == 103){
                 // next token is rs1
-                processregister(1);
+                processregister(RS1);
                 processsyntax(",");
 
                 checkimm(getcurrenttoken(),imm);
@@ -217,9 +233,9 @@ class assembler{
             // we know the next register is rs1
             uint32_t imm = 0;
 
-            processregister(1);
+            processregister(RS1);
             processsyntax(",");
-            processregister(2);
+            processregister(RS2);
             processsyntax(",");
 
             processoffset(opcodes, imm);
@@ -248,14 +264,14 @@ class assembler{
             tableRow opcodes;
 
             int instructiontype = processopcode(getcurrenttoken(), opcodes);
-            // rd -> 0, rs1 -> 1, rs2 -> 2
+    
             switch(instructiontype){
-                case 0: process_R_type(); break;
-                case 1: process_I_type(opcodes); break;
-                case 2: process_S_type(opcodes); break;
-                case 3: process_B_type(opcodes); break;
-                case 4: process_U_type(opcodes); break;
-                case 5: process_J_type(opcodes); break; 
+                case R_TYPE: process_R_type(); break;
+                case I_TYPE: process_I_type(opcodes); break;
+                case S_TYPE: process_S_type(opcodes); break;
+                case B_TYPE: process_B_type(opcodes); break;
+                case U_TYPE: process_U_type(opcodes); break;
+                case J_TYPE: process_J_type(opcodes); break; 
             }
 
             if(instructiontype == 6){
@@ -286,7 +302,7 @@ class assembler{
             uint32_t ready_base_instruction = 0;
 
             if(p_opcode == "li" || p_opcode == "la"){
-                processregister(0);
+                processregister(RD);
 
                 dest_reg = getdestreg();
 
@@ -320,9 +336,9 @@ class assembler{
                 }
 
             } else if (p_opcode == "mv" || p_opcode == "not" || p_opcode == "neg"){
-                processregister(0);
+                processregister(RD);
                 processsyntax(",");                                                 
-                processregister(1);
+                processregister(RS1);
 
                 if(p_opcode != "neg"){
                     imm = (p_opcode == "mv") ? 0 : -1;
@@ -333,13 +349,13 @@ class assembler{
                 p_opcode == "bnez" || p_opcode == "bgez" || p_opcode == "blez" || p_opcode == "bgez"){
 
                 if(p_opcode == "bgt" || p_opcode == "ble" || p_opcode == "bgtu" || p_opcode == "bleu"){
-                    processregister(2);
+                    processregister(RS2);
                     processsyntax(",");
-                    processregister(1);
+                    processregister(RS1);
                 } else if(p_opcode == "beqz" || p_opcode == "bnez" || p_opcode == "bgez"){
-                    processregister(2);
+                    processregister(RS2);
                 } else {
-                    processregister(1);
+                    processregister(RS1);
                 }
 
                 processsyntax(",");
@@ -350,7 +366,6 @@ class assembler{
 
             } else if(p_opcode == "call"){
                 processoffset(opcodes, imm);
-
                 processregister(0, 1);
                 processregister(1, 1);
 
@@ -439,7 +454,7 @@ class assembler{
         void processregister(const int& regtype, const uint32_t rnum = 32){
             uint32_t regnum = 0;
             
-            if(rnum >= 32){
+            if(rnum == 32){
                 std::string reg = getcurrenttoken();
 
                 if(checkregister(reg)){
@@ -459,9 +474,9 @@ class assembler{
             }
 
             switch(regtype){
-                case 0 : current_instr_mc |= (regnum << 7); break; // rd
-                case 1 : current_instr_mc |= (regnum << 15); break; // rs1
-                case 2 : current_instr_mc |= (regnum << 20); break; // rs2
+                case RD : current_instr_mc |= (regnum << 7); break; 
+                case RS1 : current_instr_mc |= (regnum << 15); break; 
+                case RS2 : current_instr_mc |= (regnum << 20); break; 
             }
 
             token_pointer++;
@@ -567,14 +582,14 @@ class assembler{
         Parser parser;  
 
         // opcode types
-        std::unordered_map<std::string, int> opcode_types = {
-            {R_TYPE_OPCODES, 0},    // r
-            {I_TYPE_OPCODES, 1},    // i
-            {S_TYPE_OPCODES, 2},    // s
-            {B_TYPE_OPCODES, 3},    // b
-            {U_TYPE_OPCODES, 4},    // u
-            {J_TYPE_OPCODES, 5},    // j
-            {P_OPCODES, 6},         // psuedoinstruction
+        std::unordered_map<std::string, instruction_types> opcode_types = {
+            {R_TYPE_OPCODES, R_TYPE},    
+            {I_TYPE_OPCODES, I_TYPE},    
+            {S_TYPE_OPCODES, S_TYPE},    
+            {B_TYPE_OPCODES, B_TYPE},    
+            {U_TYPE_OPCODES, U_TYPE},    
+            {J_TYPE_OPCODES, J_TYPE},    
+            {P_OPCODES, P_TYPE},         
         };
 
         // symbol table and equ directive table
@@ -584,7 +599,5 @@ class assembler{
         // codes
         machine_codes codes;
 };
-
-
 
 #endif
