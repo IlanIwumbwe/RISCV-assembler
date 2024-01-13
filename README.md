@@ -8,7 +8,7 @@ File path can be a single assembly file (`.asm` or `.s` extensions) or a folder 
 
 Machine code will be found in same directory as input file(s), with the same name as the input file but a `.txt` extension.
 
-Write a program in RISC-V assembly (no psudo instructions), and convert it into machine code!
+Write a program in RISC-V assembly and convert it into machine code!
 
 ### To-do
 - [x] Conversion for psuedo instructions
