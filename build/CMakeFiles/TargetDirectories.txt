@@ -1,3 +1,0 @@
-/home/ilan/programming/RISCV-assembler/build/CMakeFiles/assembler.dir
-/home/ilan/programming/RISCV-assembler/build/CMakeFiles/edit_cache.dir
-/home/ilan/programming/RISCV-assembler/build/CMakeFiles/rebuild_cache.dir

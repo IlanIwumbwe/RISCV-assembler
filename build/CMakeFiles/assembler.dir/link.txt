@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/assembler.dir/src/main.cpp.o -o assembler 
