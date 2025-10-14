@@ -32,6 +32,12 @@ using U64 = uint64_t;
 
 namespace Assembler {
 
+    enum Register_port {
+        RD,
+        RS1,
+        RS2
+    };
+
     struct Pseudo_instruction_data {
         U32 rd;
         U32 rs1;
@@ -40,18 +46,43 @@ namespace Assembler {
     };
 
     struct Instruction_data {
-        U32 opcode;
-        U32 funct3;
-        U32 funct7;
 
-        friend std::ostream& operator<<(std::ostream& stream, const Instruction_data& data){
-            stream << "opcode: " << data.opcode << " funct3: " << data.funct3 << " funct7: " << data.funct7;
-            return stream;
-        }
+        public:
 
-        bool operator==(const Instruction_data& other) const {
-            return (opcode == other.opcode) && (funct3 == other.funct3) && (funct7 == other.funct7);
-        }
+            Instruction_data(){}
+
+            Instruction_data(U32 _opcode, U32 _funct3, U32 _funct7) :
+                opcode(_opcode),
+                funct3(_funct3),
+                funct7(_funct7)
+            {}
+
+            U32 get_opcode() const { return opcode; }
+
+            U32 get_funct3() const { return funct3; }
+
+            U32 get_funct7() const { return funct7; }
+
+            void set_pseudo_instr_data(Pseudo_instruction_data data){
+                psi_data = std::make_optional<Pseudo_instruction_data>(data);
+            }
+
+            friend std::ostream& operator<<(std::ostream& stream, const Instruction_data& data){
+                stream << "opcode: " << data.opcode << " funct3: " << data.funct3 << " funct7: " << data.funct7;
+                return stream;
+            }
+
+            bool operator==(const Instruction_data& other) const {
+                return (opcode == other.opcode) && (funct3 == other.funct3) && (funct7 == other.funct7);
+            }
+
+        private:
+            U32 opcode;
+            U32 funct3;
+            U32 funct7;
+
+            std::optional<Pseudo_instruction_data> psi_data;
+
     };
 
     inline void to_file(std::ofstream& stream, const U32& num){

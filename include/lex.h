@@ -253,53 +253,53 @@ namespace Assembler {
         
     const std::vector<Regex_matcher> TOKEN_RULES = {
         /* R_TYPE */
-        Regex_matcher(R"(add)", ADD, {.opcode = 0b0110011, .funct3 = 0x0, .funct7 = 0x00}),
-        Regex_matcher(R"(sub)", SUB, {.opcode = 0b0110011, .funct3 = 0x0, .funct7 = 0x20}),
-        Regex_matcher(R"(xor)", XOR, {.opcode = 0b0110011, .funct3 = 0x4, .funct7 = 0x00}),
-        Regex_matcher(R"(or)", OR, {.opcode = 0b0110011, .funct3 = 0x6, .funct7 = 0x00}),
-        Regex_matcher(R"(and)", AND, {.opcode = 0b0110011, .funct3 = 0x7, .funct7 = 0x00}),
-        Regex_matcher(R"(sll)", SLL, {.opcode = 0b0110011, .funct3 = 0x1, .funct7 = 0x00}),
-        Regex_matcher(R"(srl)", SRL, {.opcode = 0b0110011, .funct3 = 0x5, .funct7 = 0x00}),
-        Regex_matcher(R"(sra)", SRA, {.opcode = 0b0110011, .funct3 = 0x5, .funct7 = 0x20}),
-        Regex_matcher(R"(slt)", SLT, {.opcode = 0b0110011, .funct3 = 0x2, .funct7 = 0x00}),
-        Regex_matcher(R"(sltu)", SLTU, {.opcode = 0b0110011, .funct3 = 0x3, .funct7 = 0x00}),
+        Regex_matcher(R"(add)", ADD, Instruction_data(0b0110011, 0x0, 0x00)),
+        Regex_matcher(R"(sub)", SUB, Instruction_data(0b0110011, 0x0, 0x20)),
+        Regex_matcher(R"(xor)", XOR, Instruction_data(0b0110011, 0x4, 0x00)),
+        Regex_matcher(R"(or)", OR, Instruction_data(0b0110011, 0x6, 0x00)),
+        Regex_matcher(R"(and)", AND, Instruction_data(0b0110011, 0x7, 0x00)),
+        Regex_matcher(R"(sll)", SLL, Instruction_data(0b0110011, 0x1, 0x00)),
+        Regex_matcher(R"(srl)", SRL, Instruction_data(0b0110011, 0x5, 0x00)),
+        Regex_matcher(R"(sra)", SRA, Instruction_data(0b0110011, 0x5, 0x20)),
+        Regex_matcher(R"(slt)", SLT, Instruction_data(0b0110011, 0x2, 0x00)),
+        Regex_matcher(R"(sltu)", SLTU, Instruction_data(0b0110011, 0x3, 0x00)),
 
         /* I_TYPE */
-        Regex_matcher(R"(addi)", ADDI, {.opcode = 0b0010011, .funct3 = 0x0, .funct7 = 0x00}),
-        Regex_matcher(R"(slli)", SLLI, {.opcode = 0b0010011, .funct3 = 0x1, .funct7 = 0x00}),
-        Regex_matcher(R"(slti)", SLTI, {.opcode = 0b0010011, .funct3 = 0x2, .funct7 = 0x00}),
-        Regex_matcher(R"(sltiu)", SLTIU, {.opcode = 0b0010011, .funct3 = 0x3, .funct7 = 0x00}),
-        Regex_matcher(R"(xori)", XORI, {.opcode = 0b0010011, .funct3 = 0x4, .funct7 = 0x00}),
-        Regex_matcher(R"(ori)", ORI, {.opcode = 0b0010011, .funct3 = 0x6, .funct7 = 0x00}),
-        Regex_matcher(R"(andi	)", ANDI, {.opcode = 0b0010011, .funct3 = 0x7, .funct7 = 0x00}),
-        Regex_matcher(R"(srli)", SRLI, {.opcode = 0b0010011, .funct3 = 0x5, .funct7 = 0x00}),
-        Regex_matcher(R"(srai)", SRAI, {.opcode = 0b0010011, .funct3 = 0x5, .funct7 = 0x20}),
-        Regex_matcher(R"(lb)", LB, {.opcode = 0b0000011, .funct3 = 0x0, .funct7 = 0x00}),
-        Regex_matcher(R"(lh)", LH, {.opcode = 0b0000011, .funct3 = 0x1, .funct7 = 0x00}),
-        Regex_matcher(R"(lw)", LW, {.opcode = 0b0000011, .funct3 = 0x2, .funct7 = 0x00}),
-        Regex_matcher(R"(lbu)", LBU, {.opcode = 0b0000011, .funct3 = 0x4, .funct7 = 0x00}),
-        Regex_matcher(R"(lhu)", LHU, {.opcode = 0b0000011, .funct3 = 0x5, .funct7 = 0x00}),
-        Regex_matcher(R"(jalr)", JALR, {.opcode = 0b1100111, .funct3 = 0x0, .funct7 = 0x00}),
+        Regex_matcher(R"(addi)", ADDI, Instruction_data(0b0010011, 0x0, 0x00)),
+        Regex_matcher(R"(slli)", SLLI, Instruction_data(0b0010011, 0x1, 0x00)),
+        Regex_matcher(R"(slti)", SLTI, Instruction_data(0b0010011, 0x2, 0x00)),
+        Regex_matcher(R"(sltiu)", SLTIU, Instruction_data(0b0010011, 0x3, 0x00)),
+        Regex_matcher(R"(xori)", XORI, Instruction_data(0b0010011, 0x4, 0x00)),
+        Regex_matcher(R"(ori)", ORI, Instruction_data(0b0010011, 0x6, 0x00)),
+        Regex_matcher(R"(andi)", ANDI, Instruction_data(0b0010011, 0x7, 0x00)),
+        Regex_matcher(R"(srli)", SRLI, Instruction_data(0b0010011, 0x5, 0x00)),
+        Regex_matcher(R"(srai)", SRAI, Instruction_data(0b0010011, 0x5, 0x20)),
+        Regex_matcher(R"(lb)", LB, Instruction_data(0b0000011, 0x0, 0x00)),
+        Regex_matcher(R"(lh)", LH, Instruction_data(0b0000011, 0x1, 0x00)),
+        Regex_matcher(R"(lw)", LW, Instruction_data(0b0000011, 0x2, 0x00)),
+        Regex_matcher(R"(lbu)", LBU, Instruction_data(0b0000011, 0x4, 0x00)),
+        Regex_matcher(R"(lhu)", LHU, Instruction_data(0b0000011, 0x5, 0x00)),
+        Regex_matcher(R"(jalr)", JALR, Instruction_data(0b1100111, 0x0, 0x00)),
 
         /* S_TYPE */
-        Regex_matcher(R"(sb)", SB, {.opcode = 0b0100011, .funct3 = 0x0, .funct7 = 0x00}),
-        Regex_matcher(R"(sh)", SH, {.opcode = 0b0100011, .funct3 = 0x1, .funct7 = 0x00}),
-        Regex_matcher(R"(sw)", SW, {.opcode = 0b0100011, .funct3 = 0x2, .funct7 = 0x00}),
+        Regex_matcher(R"(sb)", SB, Instruction_data(0b0100011, 0x0, 0x00)),
+        Regex_matcher(R"(sh)", SH, Instruction_data(0b0100011, 0x1, 0x00)),
+        Regex_matcher(R"(sw)", SW, Instruction_data(0b0100011, 0x2, 0x00)),
 
         /* B_TYPE */
-        Regex_matcher(R"(beq)", BEQ, {.opcode = 0b1100011, .funct3 = 0x0, .funct7 = 0x00}),
-        Regex_matcher(R"(bne)", BNE, {.opcode = 0b1100011, .funct3 = 0x1, .funct7 = 0x00}),
-        Regex_matcher(R"(blt)", BLT, {.opcode = 0b1100011, .funct3 = 0x4, .funct7 = 0x00}),
-        Regex_matcher(R"(bge)", BGE, {.opcode = 0b1100011, .funct3 = 0x5, .funct7 = 0x00}),
-        Regex_matcher(R"(bltu)", BLTU, {.opcode = 0b1100011, .funct3 = 0x6, .funct7 = 0x00}),
-        Regex_matcher(R"(bgeu)", BGEU, {.opcode = 0b1100011, .funct3 = 0x7, .funct7 = 0x00}),
+        Regex_matcher(R"(beq)", BEQ, Instruction_data(0b1100011, 0x0, 0x00)),
+        Regex_matcher(R"(bne)", BNE, Instruction_data(0b1100011, 0x1, 0x00)),
+        Regex_matcher(R"(blt)", BLT, Instruction_data(0b1100011, 0x4, 0x00)),
+        Regex_matcher(R"(bge)", BGE, Instruction_data(0b1100011, 0x5, 0x00)),
+        Regex_matcher(R"(bltu)", BLTU, Instruction_data(0b1100011, 0x6, 0x00)),
+        Regex_matcher(R"(bgeu)", BGEU, Instruction_data(0b1100011, 0x7, 0x00)),
 
         /* U_TYPE */
-        Regex_matcher(R"(lui)", LUI, {.opcode = 0b0110111, .funct3 = 0x0, .funct7 = 0x00}),
-        Regex_matcher(R"(auipc)", AUIPC, {.opcode = 0b0010111, .funct3 = 0x0, .funct7 = 0x00}),
-
+        Regex_matcher(R"(lui)", LUI, Instruction_data(0b0110111, 0x0, 0x00)),
+        Regex_matcher(R"(auipc)", AUIPC, Instruction_data(0b0010111, 0x0, 0x00)),
+        
         /* J_TYPE */
-        Regex_matcher(R"(jal)", JAL, {.opcode = 0b1101111, .funct3 = 0x0, .funct7 = 0x00}),
+        Regex_matcher(R"(jal)", JAL, Instruction_data(0b1101111, 0x0, 0x00)),
 
         /* P_TYPE */
         Regex_matcher(R"(li)", LI),
@@ -392,7 +392,7 @@ namespace Assembler {
             }
         }
 
-        return Instruction_data{0};
+        return Instruction_data();
     }
             
     class Lexer{
