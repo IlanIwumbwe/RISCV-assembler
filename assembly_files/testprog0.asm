@@ -1,10 +1,12 @@
-main: 
+main:
     jal ra, init
     jal zero, main
 
-init: 
-    addi s2, zero, 0x0
-    addi s4, zero, 0x8   
+init:
+    li s2, 0x0   
+    li s3, 0xfffffff  # load s3 with 0xff
+    li s5, 0xffff   # result reg init at 0
+    li s4, 0x8   
 
 loopi:
     slli s2, s2, 1    # shift left by 1
@@ -17,4 +19,4 @@ wait:
     addi s4, zero, 0x8
     bne s3, s2, loopi
     addi s5, zero, 0
-
+            
