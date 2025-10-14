@@ -4,12 +4,6 @@
 
 namespace Assembler {
 
-    enum Register_port {
-        RD,
-        RS1,
-        RS2
-    };
-
     class Assembler {
 
         public:
@@ -125,9 +119,9 @@ namespace Assembler {
             }
 
             int process_r_type_instr(const Instruction_data& instr_data){
-                current_instr_binary |= instr_data.opcode;
-                place_bits(current_instr_binary, instr_data.funct3, 12, 3);
-                place_bits(current_instr_binary, instr_data.funct7, 25, 7);
+                current_instr_binary |= instr_data.get_opcode();
+                place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
+                place_bits(current_instr_binary, instr_data.get_funct7(), 25, 7);
 
                 consume(1);
 
@@ -144,11 +138,11 @@ namespace Assembler {
 
             int process_i_type_instr(const Instruction_data& instr_data){
 
-                U32 opcode = instr_data.opcode;
+                U32 opcode = instr_data.get_opcode();
                 U64 imm;
                 
                 current_instr_binary |= opcode;
-                place_bits(current_instr_binary, instr_data.funct3, 12, 3);
+                place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
 
                 consume(1);
 
@@ -186,8 +180,8 @@ namespace Assembler {
 
             int process_s_type_instr(const Instruction_data& instr_data){
 
-                current_instr_binary |= instr_data.opcode;
-                place_bits(current_instr_binary, instr_data.funct3, 12, 3);
+                current_instr_binary |= instr_data.get_opcode();
+                place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
 
                 consume(1);
 
@@ -212,8 +206,8 @@ namespace Assembler {
 
             int process_b_type_instr(const Instruction_data& instr_data){
                 
-                current_instr_binary |= instr_data.opcode;
-                place_bits(current_instr_binary, instr_data.funct3, 12, 3);
+                current_instr_binary |= instr_data.get_opcode();
+                place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
 
                 consume(1);
 
@@ -237,7 +231,7 @@ namespace Assembler {
 
             int process_u_type_instr(const Instruction_data& instr_data){
 
-                current_instr_binary |= instr_data.opcode;
+                current_instr_binary |= instr_data.get_opcode();
 
                 consume(1);
 
@@ -255,7 +249,7 @@ namespace Assembler {
 
             int process_j_type_instr(const Instruction_data& instr_data){
 
-                current_instr_binary |= instr_data.opcode;
+                current_instr_binary |= instr_data.get_opcode();
 
                 consume(1);
                 
