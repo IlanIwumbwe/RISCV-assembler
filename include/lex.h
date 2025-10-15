@@ -33,6 +33,11 @@ namespace Assembler {
         SRA,
         SLT,
         SLTU,
+        ADDW,
+        SUBW,
+        SLLW,
+        SRLW,
+        SRAW,
         R_TYPE_END,
         /*
             I_TYPE
@@ -53,6 +58,12 @@ namespace Assembler {
         LBU,
         LHU,
         JALR,
+        ADDIW,
+        SLLIW,
+        SRLIW,
+        SRAIW,
+        LWU,
+        LD,
         I_TYPE_END,
         /*
             S_TYPE
@@ -61,6 +72,7 @@ namespace Assembler {
         SB,
         SH,
         SW,
+        SD,
         S_TYPE_END,
         /*
             B_TYPE
@@ -280,6 +292,11 @@ namespace Assembler {
         Regex_matcher(R"(sra)", SRA, Instruction_data(0b0110011, 0x5, 0x20)),
         Regex_matcher(R"(slt)", SLT, Instruction_data(0b0110011, 0x2, 0x00)),
         Regex_matcher(R"(sltu)", SLTU, Instruction_data(0b0110011, 0x3, 0x00)),
+        Regex_matcher(R"(addw)", ADDW, Instruction_data(0b0111011, 0x0, 0x00)),
+        Regex_matcher(R"(subw)", SUBW, Instruction_data(0b0111011, 0x0, 0x20)),
+        Regex_matcher(R"(sllW)", SLLW, Instruction_data(0b0111011, 0x1, 0x00)),
+        Regex_matcher(R"(srlW)", SRLW, Instruction_data(0b0111011, 0x5, 0x00)),
+        Regex_matcher(R"(sraW)", SRAW, Instruction_data(0b0111011, 0x5, 0x20)),
 
         /* I_TYPE */
         Regex_matcher(R"(addi)", ADDI, Instruction_data(0b0010011, 0x0, 0x00)),
@@ -297,11 +314,18 @@ namespace Assembler {
         Regex_matcher(R"(lbu)", LBU, Instruction_data(0b0000011, 0x4, 0x00)),
         Regex_matcher(R"(lhu)", LHU, Instruction_data(0b0000011, 0x5, 0x00)),
         Regex_matcher(R"(jalr)", JALR, Instruction_data(0b1100111, 0x0, 0x00)),
+        Regex_matcher(R"(addiw)", ADDIW, Instruction_data(0b0011011, 0x0, 0x00)),
+        Regex_matcher(R"(slliw)", SLLIW, Instruction_data(0b0011011, 0x1, 0x00)),
+        Regex_matcher(R"(srliw)", SRLIW, Instruction_data(0b0011011, 0x5, 0x00)),
+        Regex_matcher(R"(sraiw)", SRAIW, Instruction_data(0b0011011, 0x5, 0x20)),
+        Regex_matcher(R"(lwu)", LWU, Instruction_data(0b0000011, 0x6, 0x00)),
+        Regex_matcher(R"(ld)", LD, Instruction_data(0b0000011, 0x3, 0x00)),
 
         /* S_TYPE */
         Regex_matcher(R"(sb)", SB, Instruction_data(0b0100011, 0x0, 0x00)),
         Regex_matcher(R"(sh)", SH, Instruction_data(0b0100011, 0x1, 0x00)),
         Regex_matcher(R"(sw)", SW, Instruction_data(0b0100011, 0x2, 0x00)),
+        Regex_matcher(R"(lwu)", SD, Instruction_data(0b0100011, 0x3, 0x00)),
 
         /* B_TYPE */
         Regex_matcher(R"(beq)", BEQ, Instruction_data(0b1100011, 0x0, 0x00)),
