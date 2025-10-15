@@ -63,12 +63,18 @@ namespace Assembler {
 
             U32 get_funct7() const { return funct7; }
 
-            void set_pseudo_instr_data(Pseudo_instruction_data data){
+            bool from_pseudo_instr() const {return psi_data.has_value();}
+
+            Pseudo_instruction_data get_psi_data() const {return psi_data.value_or(Pseudo_instruction_data{0});}
+
+            void set_pseudo_instr_data(const Pseudo_instruction_data& data){
                 psi_data = std::make_optional<Pseudo_instruction_data>(data);
             }
 
             friend std::ostream& operator<<(std::ostream& stream, const Instruction_data& data){
                 stream << "opcode: " << data.opcode << " funct3: " << data.funct3 << " funct7: " << data.funct7;
+                stream << "pseudo instr data: " << (data.from_pseudo_instr() ? "true" : "false");
+
                 return stream;
             }
 

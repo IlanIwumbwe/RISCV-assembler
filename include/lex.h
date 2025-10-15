@@ -190,6 +190,21 @@ namespace Assembler {
         std::variant<U32, Instruction_data, std::string> value;
         Token_kind kind;
 
+        U32 get_reg_num(){
+            assert(token_is_reg(kind));
+            return std::get<U32>(value);
+        }
+
+        Instruction_data get_instr_data(){
+            assert(token_is_base_instr(kind) || token_is_pseudo_instr(kind));
+            return std::get<Instruction_data>(value);
+        }
+
+        std::string get_string(){
+            assert(std::holds_alternative<std::string>(value));
+            return std::get<std::string>(value);
+        }
+
         bool operator==(const Token& other) const {
             return (value == other.value) && (kind == other.kind);
         }
@@ -214,9 +229,11 @@ namespace Assembler {
         Regex_matcher(const std::string& p, const Token_kind& k){
             pattern = p;
             kind = k;
+
+            // mod_pattern(match_exact);
         }
 
-        Regex_matcher(const std::string& p, const Token_kind& k, const Instruction_data& d,  bool match_exact = true){
+        Regex_matcher(const std::string& p, const Token_kind& k, const Instruction_data& d){
             pattern = p;
             kind = k;
             replacement_value = std::make_optional<Instruction_data>(d);
@@ -224,10 +241,10 @@ namespace Assembler {
             // must be an instruction token
             assert(token_is_base_instr(k) || token_is_pseudo_instr(k));
 
-            mod_pattern(match_exact);
+            mod_pattern(true);
         }
 
-        Regex_matcher(const std::string& p, const Token_kind& k, U32 reg_num, bool match_exact = true){
+        Regex_matcher(const std::string& p, const Token_kind& k, U32 reg_num){
             pattern = p;
             kind = k;
             replacement_value = std::make_optional<U32>(reg_num);
@@ -235,7 +252,7 @@ namespace Assembler {
             // must be a register token
             assert(token_is_reg(k));
 
-            mod_pattern(match_exact);
+            mod_pattern(true);
         }
 
         void mod_pattern(const bool& match_exact){
@@ -302,24 +319,24 @@ namespace Assembler {
         Regex_matcher(R"(jal)", JAL, Instruction_data(0b1101111, 0x0, 0x00)),
 
         /* P_TYPE */
-        Regex_matcher(R"(li)", LI),
-        Regex_matcher(R"(la)", LA),
-        Regex_matcher(R"(mv)", MV),
-        Regex_matcher(R"(not)", NOT),
-        Regex_matcher(R"(neg)", NEG),
-        Regex_matcher(R"(bgt)", BGT),
-        Regex_matcher(R"(ble)", BLE),
-        Regex_matcher(R"(bgtu)", BGTU),
-        Regex_matcher(R"(bleu)", BLEU),
-        Regex_matcher(R"(beqz)", BEQZ),
-        Regex_matcher(R"(bnez)", BNEZ),
-        Regex_matcher(R"(bgez)", BGEZ),
-        Regex_matcher(R"(blez)", BLEZ),
-        Regex_matcher(R"(bgtz)", BGTZ),
-        Regex_matcher(R"(j)", J),
-        Regex_matcher(R"(call)", CALL),
-        Regex_matcher(R"(ret)", RET),
-        Regex_matcher(R"(nop)", NOP),
+        Regex_matcher(R"(li)", LI, Instruction_data()),
+        Regex_matcher(R"(la)", LA, Instruction_data()),
+        Regex_matcher(R"(mv)", MV, Instruction_data()),
+        Regex_matcher(R"(not)", NOT, Instruction_data()),
+        Regex_matcher(R"(neg)", NEG, Instruction_data()),
+        Regex_matcher(R"(bgt)", BGT, Instruction_data()),
+        Regex_matcher(R"(ble)", BLE, Instruction_data()),
+        Regex_matcher(R"(bgtu)", BGTU, Instruction_data()),
+        Regex_matcher(R"(bleu)", BLEU, Instruction_data()),
+        Regex_matcher(R"(beqz)", BEQZ, Instruction_data()),
+        Regex_matcher(R"(bnez)", BNEZ, Instruction_data()),
+        Regex_matcher(R"(bgez)", BGEZ, Instruction_data()),
+        Regex_matcher(R"(blez)", BLEZ, Instruction_data()),
+        Regex_matcher(R"(bgtz)", BGTZ, Instruction_data()),
+        Regex_matcher(R"(j)", J, Instruction_data()),
+        Regex_matcher(R"(call)", CALL, Instruction_data()),
+        Regex_matcher(R"(ret)", RET, Instruction_data()),
+        Regex_matcher(R"(nop)", NOP, Instruction_data()),
 
         /* Other */
         Regex_matcher(R"(0x[0-9a-fA-F]+)", HEX),

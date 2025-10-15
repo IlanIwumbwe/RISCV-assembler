@@ -1,0 +1,1 @@
+li s3, 0xfffffff  # load s3 with 0xff
