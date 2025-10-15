@@ -69,27 +69,27 @@ namespace Assembler {
             }
 
             void emit_binary(){
-                to_file(stream, current_instr_binary);
-                current_instr_binary = 0UL;
+                if(current_instr_binary){ 
+                    to_file(stream, current_instr_binary);
+                    current_instr_binary = 0UL;
+                }
             }
 
-            void set_register(Register_port port, U32 _reg_num = 32){
-                
-                U32 reg_num;
-
-                if(_reg_num == 32){
-                    assert(token_is_reg(curr_token.kind));
-                    reg_num = std::get<U32>(curr_token.value);
-
-                } else {
-                    reg_num = reg_num;
-                }
-                
+            void set_register(Register_port port, U32 reg_num){
                 switch(port){
                     case RD : current_instr_binary |= (reg_num << 7); break; 
                     case RS1 : current_instr_binary |= (reg_num << 15); break; 
                     case RS2 : current_instr_binary |= (reg_num << 20); break; 
                 }
+            }
+
+            void consume_reg(Register_port port){
+                U32 reg_num;
+
+                assert(token_is_reg(curr_token.kind));
+                reg_num = std::get<U32>(curr_token.value);
+
+                set_register(port, reg_num);
 
                 consume(1);
             }
@@ -119,19 +119,21 @@ namespace Assembler {
             }
 
             int process_r_type_instr(const Instruction_data& instr_data){
+                
                 current_instr_binary |= instr_data.get_opcode();
                 place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
                 place_bits(current_instr_binary, instr_data.get_funct7(), 25, 7);
-
                 consume(1);
 
-                set_register(RD);
+                consume_reg(RD);
+
                 consume(COMMA);
 
-                set_register(RS1);
+                consume_reg(RS1);
+
                 consume(COMMA);
 
-                set_register(RS2);
+                consume_reg(RS2);
 
                 return 1;
             }
@@ -144,36 +146,57 @@ namespace Assembler {
                 current_instr_binary |= opcode;
                 place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
 
-                consume(1);
+                if(instr_data.from_pseudo_instr()){
+                    std::cout << "Adding I-type from pseudo instr" << std::endl;
 
-                set_register(RD);
+                    Pseudo_instruction_data pseudo_instr_data = instr_data.get_psi_data();
 
-                consume(COMMA);
-
-                if(opcode == 0b0000011){
-                    
-                    imm = get_imm();
+                    set_register(RD, pseudo_instr_data.rd);
+                    imm = pseudo_instr_data.imm;
+                    set_register(RS1, pseudo_instr_data.rs1);
+                
+                } else {
 
                     consume(1);
 
-                    consume(LBRACK);
+                    consume_reg(RD);
 
-                    set_register(RS1);
-
-                    consume(RBRACK);
-                    
-                } else if (opcode == 0b0010011 || opcode == 0b1100111){
-
-                    set_register(RS1);
-                    
                     consume(COMMA);
-                    
-                    imm = get_imm(); 
 
-                    consume(1);
+                    if(opcode == 0b0000011){
+                        
+                        imm = get_imm();
+                        consume(1);
+
+                        consume(LBRACK);
+
+                        consume_reg(RS1);
+
+                        consume(RBRACK);
+                        
+                    } else if (opcode == 0b0010011 || opcode == 0b1100111){
+
+                        consume_reg(RS1);
+                        
+                        consume(COMMA);
+                        
+                        imm = get_imm(); 
+                        consume(1);
+                    }
+
                 }
 
-                place_bits(current_instr_binary, get_bits(imm, 11, 0), 20, 12);
+                if(instr_data.get_funct3() == 1 || instr_data.get_funct3() == 5){
+                    // imm is unsigned 5 bit
+                    place_bits(current_instr_binary, get_bits(imm, 4, 0), 20, 12);
+
+                    if(imm > 4095){
+                        WARNING("The immediate passed for the shift instruction at " + std::to_string(pc) + " is more than 5 bits wide, only the least significant 5 bits will be considered");
+                    }
+
+                } else {
+                    place_bits(current_instr_binary, get_bits(imm, 11, 0), 20, 12);
+                }
 
                 return 1;
             }
@@ -182,23 +205,22 @@ namespace Assembler {
 
                 current_instr_binary |= instr_data.get_opcode();
                 place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
-
                 consume(1);
 
-                set_register(RS2);
+                consume_reg(RS2);
+
                 consume(COMMA);
 
                 U64 imm = get_imm();
 
-                std::cout << HEX(imm) << std::endl;
-
                 place_bits(current_instr_binary, get_bits(imm, 4, 0), 7, 5);
                 place_bits(current_instr_binary, get_bits(imm, 11, 5), 25, 7);
-
                 consume(1);
 
                 consume(LBRACK);
-                set_register(RS1);
+
+                consume_reg(RS1);
+                
                 consume(RBRACK);
 
                 return 1;
@@ -208,13 +230,14 @@ namespace Assembler {
                 
                 current_instr_binary |= instr_data.get_opcode();
                 place_bits(current_instr_binary, instr_data.get_funct3(), 12, 3);
-
                 consume(1);
 
-                set_register(RS1);
+                consume_reg(RS1);
+                
                 consume(COMMA);
 
-                set_register(RS2);
+                consume_reg(RS2);
+                
                 consume(COMMA);
 
                 U64 imm = get_imm(true);
@@ -223,7 +246,6 @@ namespace Assembler {
                 place_bits(current_instr_binary, get_bits(imm, 4, 1), 8, 4);
                 place_bits(current_instr_binary, get_bits(imm, 10, 5), 25, 6);
                 place_bits(current_instr_binary, get_bits(imm, 12, 12), 31, 1);
-
                 consume(1);
 
                 return 1;
@@ -233,16 +255,33 @@ namespace Assembler {
 
                 current_instr_binary |= instr_data.get_opcode();
 
-                consume(1);
+                if(instr_data.from_pseudo_instr()){
 
-                set_register(RD);
-                consume(COMMA);
+                    std::cout << "Adding LUI because of pseudo" << std::endl;
+                    
+                    Pseudo_instruction_data pseudo_instr_data = instr_data.get_psi_data();
 
-                U64 imm = get_imm();
+                    set_register(RD, pseudo_instr_data.rd);
 
-                place_bits(current_instr_binary, get_bits(imm, 31, 12), 12, 10);
+                    std::cout << HEX(pseudo_instr_data.imm) << std::endl;
 
-                consume(1);
+                    place_bits(current_instr_binary, get_bits(pseudo_instr_data.imm, 31, 12), 12, 20);
+
+                } else {
+
+                    consume(1);
+
+                    consume_reg(RD);
+                    
+                    consume(COMMA);
+
+                    U64 imm = get_imm();
+                    
+                    std::cout << HEX(imm) << std::endl;
+
+                    place_bits(current_instr_binary, get_bits(imm, 31, 12), 12, 20);
+                    consume(1);
+                }
 
                 return 1;
             }
@@ -250,10 +289,10 @@ namespace Assembler {
             int process_j_type_instr(const Instruction_data& instr_data){
 
                 current_instr_binary |= instr_data.get_opcode();
-
                 consume(1);
                 
-                set_register(RD);
+                consume_reg(RD);
+                
                 consume(COMMA);
 
                 U64 imm = get_imm(true);
@@ -263,7 +302,6 @@ namespace Assembler {
                 place_bits(current_instr_binary, get_bits(imm, 11, 11), 20, 1);
                 place_bits(current_instr_binary, get_bits(imm, 10, 1), 21, 10);
                 place_bits(current_instr_binary, get_bits(imm, 20, 20), 31, 1);
-
                 consume(1);
 
                 return 1;
@@ -271,29 +309,48 @@ namespace Assembler {
 
             int process_p_instr(){
 
+                Pseudo_instruction_data pseudo_instr_data;
+                Instruction_data instr_data;
+                U64 imm;
+
                 if(curr_token.kind == LI){
                     consume(1);
 
-                    set_register(RD);
+                    pseudo_instr_data.rd = curr_token.get_reg_num();
+                    consume(1);
 
                     consume(COMMA);
 
-                    U64 imm = get_imm();
+                    imm = get_imm();
                     U64 lower_12_bits = imm & 4095;
-
                     consume(1);
 
                     if((imm > 4095) && lower_12_bits){
-                        // add lui instr
-                        process_u_type_instr(find_instr_data_for(LUI));
 
-                    } 
+                        // check whether we need to add 1 to upper instruction immediate for U-type instr
+                        pseudo_instr_data.imm = imm + ((imm & 2048) != 0ULL);
+
+                        // add lui instr
+                        instr_data = find_instr_data_for(LUI);
+                        instr_data.set_pseudo_instr_data(pseudo_instr_data);
+
+                        process_u_type_instr(instr_data);
+                        emit_binary();
+                    }
                     
                     // add addi
+                    // reset imm to original one in case 1 was added for U-type
+                    pseudo_instr_data.imm = imm;
+                    pseudo_instr_data.rs1 = pseudo_instr_data.rd;
+
+                    instr_data = find_instr_data_for(ADDI);
+                    instr_data.set_pseudo_instr_data(pseudo_instr_data);
+
+                    process_i_type_instr(instr_data);
+                    emit_binary();
 
                     return 2;
                 }
-
 
                 return 1;
             }
@@ -317,31 +374,38 @@ namespace Assembler {
                     consume(1);
                 
                 } else if(token_kind_is_between(curr_token.kind, R_TYPE_START, R_TYPE_END)){ 
-                    pc += process_r_type_instr(std::get<Instruction_data>(curr_token.value));
+                    pc += process_r_type_instr(curr_token.get_instr_data());
                 
                 } else if (token_kind_is_between(curr_token.kind, I_TYPE_START, I_TYPE_END)){
-                    pc += process_i_type_instr(std::get<Instruction_data>(curr_token.value));
+                    pc += process_i_type_instr(curr_token.get_instr_data());
 
                 } else if (token_kind_is_between(curr_token.kind, S_TYPE_START, S_TYPE_END)){
-                    pc += process_s_type_instr(std::get<Instruction_data>(curr_token.value));
+                    pc += process_s_type_instr(curr_token.get_instr_data());
 
                 } else if (token_kind_is_between(curr_token.kind, B_TYPE_START, B_TYPE_END)){
-                    pc += process_b_type_instr(std::get<Instruction_data>(curr_token.value));
+                    pc += process_b_type_instr(curr_token.get_instr_data());
 
                 } else if (token_kind_is_between(curr_token.kind, U_TYPE_START, U_TYPE_END)){
-                    pc += process_u_type_instr(std::get<Instruction_data>(curr_token.value));
+                    pc += process_u_type_instr(curr_token.get_instr_data());
 
                 } else if(curr_token.kind == JAL){
-                    pc += process_j_type_instr(std::get<Instruction_data>(curr_token.value));
+                    pc += process_j_type_instr(curr_token.get_instr_data());
                     
                 } else if (token_is_pseudo_instr(curr_token.kind)){
 
-                    // num_base_instructions_processed += process_p_instr();
+                    int num_added_instrs = process_p_instr();
 
-                    consume(1); // TODO: remove this later
-                
+                    if(num_added_instrs > 1){
+                        // go through all labels below this pseudo instruction and change the address they point to 
+                        for(auto& [label, label_addr] : symbol_table){
+                            if(label_addr > pc){label_addr += num_added_instrs - 1;}
+                        }
+                    }
+
+                    pc += num_added_instrs;
+
                 } else {
-                    // WARNING("Unhandled token " + std::to_string(curr_token.kind));
+                    WARNING("Unhandled token " + std::to_string(curr_token.kind));
                     consume(1);
                 }
 
@@ -378,7 +442,6 @@ namespace Assembler {
 
             // symbol table and equ directive table
             std::unordered_map<std::string, U64> symbol_table = {};
-            std::unordered_map<std::string, int> imm_bindings;
 
             U64 pc = 0ULL;
             U32 current_instr_binary = 0UL;
