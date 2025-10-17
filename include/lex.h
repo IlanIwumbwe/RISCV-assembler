@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <variant>
-#include <utils.h>
+#include "utils.h"
 
 #include "string.h"
 
@@ -285,7 +285,7 @@ namespace Assembler {
         Regex_matcher(R"(add)", ADD, Instruction_data(0b0110011, 0x0, 0x00)),
         Regex_matcher(R"(sub)", SUB, Instruction_data(0b0110011, 0x0, 0x20)),
         Regex_matcher(R"(xor)", XOR, Instruction_data(0b0110011, 0x4, 0x00)),
-        Regex_matcher(R"(or)", OR, Instruction_data(0b0110011, 0x6, 0x00)),
+        Regex_matcher(R"(or)",  OR, Instruction_data(0b0110011, 0x6, 0x00)),
         Regex_matcher(R"(and)", AND, Instruction_data(0b0110011, 0x7, 0x00)),
         Regex_matcher(R"(sll)", SLL, Instruction_data(0b0110011, 0x1, 0x00)),
         Regex_matcher(R"(srl)", SRL, Instruction_data(0b0110011, 0x5, 0x00)),

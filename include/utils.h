@@ -22,10 +22,20 @@ namespace fs = std::filesystem;
 
 // logging
 #define ERROR(x) std::cerr << (std::string("[ERROR] ") + RED(ANNOT(x))) << std::endl
-#define WARNING(x) std::cout << (std::string("[WARNING] ") + YELLOW(ANNOT(x))) << std::endl
+#define WARNING(x) std::cerr << (std::string("[WARNING] ") + YELLOW(ANNOT(x))) << std::endl
 #define INFO(x) std::cout << (std::string("[INFO] ") + GREEN(x)) << std::endl
+#define PANIC(x) do { \
+        ERROR(x); \
+        exit(-1); \
+    } while(0);
 
 #define HEX(x) std::setfill('0') << std::setw(8) << std::hex << x << std::dec
+
+#define BITMASK_12 (set_bit(12)-1)
+#define BITMASK_20 (set_bit(20)-1)
+
+#define FITS_IN_12_BITS(x) ((x & ~BITMASK_12) == 0)
+#define FITS_IN_20_BITS(x) ((x & ~BITMASK_20) == 0)
 
 using U32 = uint64_t;
 using U64 = uint64_t;

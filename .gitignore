@@ -1,3 +1,4 @@
 .vscode
 assembler
 build
+*.o
