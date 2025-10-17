@@ -1,7 +1,5 @@
 # RISC-V Assembler
 
-Assembler for RV64I
-
 1. Compile using `make`
 2. Run the assember using `./assembler`
 3. Create assembly files in a folder called `assembly_files`
